@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graph Hierarchy Analyzer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    h1, h2, h3 {
+      color: #2c3e50;
+      margin-top: 0;
+    }
+
+    .identity-box {
+      background-color: #eef2f7;
+      border: 1px solid #dcdfe6;
+      border-radius: 4px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .identity-box p {
+      margin: 5px 0;
+      font-size: 15px;
+    }
+
+    textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      resize: vertical;
+    }
+
+    .btn-group {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      padding: 10px 15px;
+      font-size: 14px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-submit {
+      background-color: #3498db;
+      color: white;
+    }
+
+    .btn-submit:hover {
+      background-color: #2980b9;
+    }
+
+    .btn-reset {
+      background-color: #95a5a6;
+      color: white;
+    }
+
+    .btn-reset:hover {
+      background-color: #7f8c8d;
+    }
+
+    .error-msg {
+      background-color: #fadbd8;
+      border: 1px solid #f5b7b1;
+      color: #78281f;
+      padding: 10px;
+      border-radius: 4px;
+      margin-top: 15px;
+    }
+
+    .results-section {
+      margin-top: 30px;
+      border-top: 2px solid #eee;
+      padding-top: 20px;
+    }
+
+    .summary-stats {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .stat-card {
+      flex: 1;
+      background: #fafafa;
+      border: 1px solid #ddd;
+      padding: 15px;
+      border-radius: 4px;
+      text-align: center;
+    }
+
+    .stat-card span {
+      display: block;
+      font-size: 24px;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-top: 5px;
+    }
+
+    .hierarchy-card {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-bottom: 15px;
+      background: #fff;
+    }
+
+    .hierarchy-header {
+      background: #f5f5f5;
+      padding: 10px 15px;
+      font-weight: bold;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .hierarchy-body {
+      padding: 15px;
+    }
+
+    .tree-view ul {
+      list-style-type: none;
+      padding-left: 20px;
+      margin: 5px 0;
+      border-left: 1px dashed #bbb;
+    }
+
+    .tree-view li {
+      margin: 5px 0;
+      position: relative;
+    }
+
+    .badge-cycle {
+      background-color: #f1948a;
+      color: #78281f;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+
+    .badge-tree {
+      background-color: #abebc6;
+      color: #145a32;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+
+    .lists-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .list-box {
+      border: 1px solid #ddd;
+      background: #fafafa;
+      padding: 15px;
+      border-radius: 4px;
+    }
+
+    .list-box ul {
+      padding-left: 20px;
+      margin: 5px 0;
+    }
+
+    .code-val {
+      font-family: monospace;
+      background: #eaeaea;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Graph Hierarchy Analyzer</h1>
+  <p style="color: #666; margin-bottom: 20px;">Input edges and analyze independent tree and cycle structures.</p>
+
+  <div class="identity-box">
+    <p><strong>Student Name / User ID:</strong> <span id="userId">jiyatyagi_20060731</span></p>
+    <p><strong>Email Address:</strong> <span id="emailId">jiya.tyagi.btech2023@sitpune.edu.in</span></p>
+    <p><strong>Enrollment Number:</strong> <span id="enrollmentNum">23070122111</span></p>
+  </div>
+
+  <form id="graphForm">
+    <h3>Enter Edges (JSON Array Format)</h3>
+    <textarea id="edgesInput" rows="8"></textarea>
+    <div class="btn-group">
+      <button type="submit" class="btn-submit">Submit Graph</button>
+      <button type="button" class="btn-reset" id="resetBtn">Reset Example</button>
+    </div>
+  </form>
+
+  <div id="errorAlert" class="error-msg" style="display: none;"></div>
+
+  <div id="results" class="results-section" style="display: none;">
+    <h2>Results &amp; Summary</h2>
+
+    <div class="summary-stats">
+      <div class="stat-card">
+        Total Trees
+        <span id="statTrees">0</span>
+      </div>
+      <div class="stat-card">
+        Total Cycles
+        <span id="statCycles">0</span>
+      </div>
+      <div class="stat-card">
+        Largest Tree Root
+        <span id="statLargestRoot">N/A</span>
+      </div>
+    </div>
+
+    <h3>Graph Hierarchies</h3>
+    <div id="hierarchiesList"></div>
+
+    <div class="lists-grid">
+      <div class="list-box">
+        <h4>Invalid Entries</h4>
+        <ul id="invalidList"></ul>
+      </div>
+      <div class="list-box">
+        <h4>Duplicate Edges</h4>
+        <ul id="duplicateList"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const exampleInput = [
+    "A->B", "A->C", "B->D", "C->E", "E->F",
+    "X->Y", "Y->Z", "Z->X",
+    "P->Q", "Q->R",
+    "G->H", "G->H", "G->I",
+    "hello", "1->2", "A->"
+  ];
+
+  const edgesTextarea = document.getElementById('edgesInput');
+  const graphForm = document.getElementById('graphForm');
+  const resetBtn = document.getElementById('resetBtn');
+  const errorAlert = document.getElementById('errorAlert');
+  const resultsDiv = document.getElementById('results');
+
+  edgesTextarea.value = JSON.stringify(exampleInput, null, 2);
+
+  resetBtn.addEventListener('click', () => {
+    edgesTextarea.value = JSON.stringify(exampleInput, null, 2);
+    errorAlert.style.display = 'none';
+    resultsDiv.style.display = 'none';
+  });
+
+  function renderSubtree(node, subtree) {
+    const children = Object.keys(subtree || {});
+    if (children.length === 0) {
+      return `<li><span class="code-val">${node}</span></li>`;
+    }
+    let html = `<li><span class="code-val">${node}</span><ul>`;
+    for (const child of children) {
+      html += renderSubtree(child, subtree[child]);
+    }
+    html += `</ul></li>`;
+    return html;
+  }
+
+  graphForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorAlert.style.display = 'none';
+    resultsDiv.style.display = 'none';
+
+    let edges = [];
+    try {
+      edges = JSON.parse(edgesTextarea.value);
+      if (!Array.isArray(edges)) {
+        throw new Error("Input must be a valid JSON array.");
+      }
+    } catch (err) {
+      errorAlert.textContent = "JSON Parse Error: Please enter a valid JSON array.";
+      errorAlert.style.display = 'block';
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/graph', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ edges })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "An error occurred.");
+      }
+
+      document.getElementById('userId').textContent = data.user_id;
+      document.getElementById('emailId').textContent = data.email_id;
+      document.getElementById('enrollmentNum').textContent = data.enrollment_number;
+
+      document.getElementById('statTrees').textContent = data.summary.total_trees;
+      document.getElementById('statCycles').textContent = data.summary.total_cycles;
+      document.getElementById('statLargestRoot').textContent = data.summary.largest_tree_root || "N/A";
+
+      const listContainer = document.getElementById('hierarchiesList');
+      listContainer.innerHTML = '';
+
+      if (data.hierarchies.length === 0) {
+        listContainer.innerHTML = '<p>No valid hierarchies to display.</p>';
+      } else {
+        data.hierarchies.forEach(h => {
+          const card = document.createElement('div');
+          card.className = 'hierarchy-card';
+
+          const header = document.createElement('div');
+          header.className = 'hierarchy-header';
+          header.innerHTML = `
+            <span>Root: ${h.root}</span>
+            ${h.has_cycle 
+              ? `<span class="badge-cycle">Cycle Detected</span>` 
+              : `<span class="badge-tree">Tree (Depth: ${h.depth})</span>`
+            }
+          `;
+
+          const body = document.createElement('div');
+          body.className = 'hierarchy-body';
+
+          if (h.has_cycle) {
+            body.innerHTML = `<p style="color: #c0392b; font-style: italic; margin: 0;">This component contains a cycle. Tree cannot be drawn.</p>`;
+          } else {
+            const treeWrapper = document.createElement('div');
+            treeWrapper.className = 'tree-view';
+            treeWrapper.innerHTML = `<ul>${renderSubtree(h.root, h.tree[h.root])}</ul>`;
+            body.appendChild(treeWrapper);
+          }
+
+          card.appendChild(header);
+          card.appendChild(body);
+          listContainer.appendChild(card);
+        });
+      }
+
+      const invalidUl = document.getElementById('invalidList');
+      invalidUl.innerHTML = '';
+      if (data.invalid_entries.length === 0) {
+        invalidUl.innerHTML = '<li><em>None</em></li>';
+      } else {
+        data.invalid_entries.forEach(item => {
+          const li = document.createElement('li');
+          li.innerHTML = `<span class="code-val">${item}</span>`;
+          invalidUl.appendChild(li);
+        });
+      }
+
+      const duplicateUl = document.getElementById('duplicateList');
+      duplicateUl.innerHTML = '';
+      if (data.duplicate_edges.length === 0) {
+        duplicateUl.innerHTML = '<li><em>None</em></li>';
+      } else {
+        data.duplicate_edges.forEach(item => {
+          const li = document.createElement('li');
+          li.innerHTML = `<span class="code-val">${item}</span>`;
+          duplicateUl.appendChild(li);
+        });
+      }
+
+      resultsDiv.style.display = 'block';
+
+    } catch (err) {
+      errorAlert.textContent = "API Error: " + err.message;
+      errorAlert.style.display = 'block';
+    }
+  });
+</script>
+</body>
+</html>
